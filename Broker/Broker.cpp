@@ -6,9 +6,12 @@
 #include <atlstr.h>
 #include <strsafe.h>
 #include <Sddl.h>
+#include <TlHelp32.h>
 #include "Broker.h"
-
+#include <thread>
+#include <DbgHelp.h>
 #define BUFFER_SIZE		4096 // 4K bytes
+
 
 
 
@@ -53,10 +56,71 @@ void createNamedPipe() {
 }
 
 
+ULONG SetProcessUntrusted(HANDLE hProcess)
+{
+	TOKEN_MANDATORY_LABEL tml = { { (PSID)alloca(MAX_SID_SIZE), SE_GROUP_INTEGRITY } };
+
+	ULONG cb = MAX_SID_SIZE;
+
+	HANDLE hToken;
+
+	if (!CreateWellKnownSid(WinUntrustedLabelSid, 0, tml.Label.Sid, &cb) ||
+		!OpenProcessToken(hProcess, TOKEN_ADJUST_DEFAULT, &hToken))
+	{
+		return GetLastError();
+	}
+
+	ULONG dwError = NOERROR;
+	if (!SetTokenInformation(hToken, TokenIntegrityLevel, &tml, sizeof(tml)))
+	{
+		dwError = GetLastError();
+	}
+
+	CloseHandle(hToken);
+
+	return dwError;
+}
+
+
+HDESK CreateHiddenDesktop(CHAR *desktop_name)
+{
+	CHAR explorer_path[MAX_PATH];
+	HDESK hidden_desktop = NULL, original_desktop;
+	STARTUPINFOA startup_info = { 0 };
+	PROCESS_INFORMATION process_info = { 0 };
+
+	ExpandEnvironmentStringsA("%windir%\\explorer.exe", explorer_path, MAX_PATH - 1);
+
+	hidden_desktop = OpenDesktopA(desktop_name, NULL, FALSE, GENERIC_ALL);
+	if (!hidden_desktop)
+	{
+		hidden_desktop = CreateDesktopA(desktop_name, NULL, NULL, 0, GENERIC_ALL, NULL);
+		if (hidden_desktop)
+		{
+			original_desktop = GetThreadDesktop(GetCurrentThreadId());
+		
+			if (SetThreadDesktop(hidden_desktop))
+			{
+				startup_info.cb = sizeof(startup_info);
+				startup_info.lpDesktop = desktop_name;
+
+				//We need to create an explorer.exe in the context of the new desktop for start menu, etc
+				CreateProcessA(explorer_path, NULL, NULL, NULL, FALSE, 0, NULL, NULL, &startup_info, &process_info);
+
+				SetThreadDesktop(original_desktop);
+		}
+		}
+	}
+	return hidden_desktop;
+}
+
 
 BOOL CreateLowProcess(PWSTR pszCommandLine)
 {
-	
+	HDESK original_desktop, hidden_desktop;
+	hidden_desktop = CreateDesktop(TEXT("itai_sandbox"), NULL, NULL, 0, GENERIC_ALL, NULL);
+
+
 	DWORD dwError = ERROR_SUCCESS;
 	HANDLE hToken = NULL;
 	HANDLE hNewToken = NULL;
@@ -66,9 +130,10 @@ BOOL CreateLowProcess(PWSTR pszCommandLine)
 	STARTUPINFO si = { sizeof(si) };
 	PROCESS_INFORMATION pi = { 0 };
 
+	
 	// Open the primary access token of the process.
 	if (!OpenProcessToken(GetCurrentProcess(), TOKEN_DUPLICATE | TOKEN_QUERY |
-		TOKEN_ADJUST_DEFAULT | TOKEN_ASSIGN_PRIMARY, &hToken))
+		TOKEN_ADJUST_DEFAULT | TOKEN_ASSIGN_PRIMARY , &hToken))
 	{
 		dwError = GetLastError();
 		goto Cleanup;
@@ -100,14 +165,24 @@ BOOL CreateLowProcess(PWSTR pszCommandLine)
 		dwError = GetLastError();
 		goto Cleanup;
 	}
-
+	si.lpDesktop = TEXT("itai_sandbox");
 	// Create the new process at the Low integrity level.
-	if (!CreateProcessAsUser(hNewToken, NULL, pszCommandLine, NULL, NULL,
-		FALSE, 0, NULL, NULL, &si, &pi))
+	if (!CreateProcessAsUserW(hNewToken, NULL, pszCommandLine, NULL, NULL,
+		FALSE, NULL, NULL, NULL, &si, &pi))
+	//if (!CreateProcessWithTokenW(hNewToken, LOGON_NETCREDENTIALS_ONLY, pszCommandLine, NULL, NULL,
+	//		NULL, NULL, &si, &pi))
 	{
 		dwError = GetLastError();
 		goto Cleanup;
 	}
+	Sleep(100);
+	SetProcessUntrusted(pi.hProcess);
+
+	//HANDLE sandboxedProcessMainThread = OpenThread(THREAD_SUSPEND_RESUME, FALSE, pi.dwThreadId);
+
+	//ResumeThread(sandboxedProcessMainThread);
+
+
 
 Cleanup:
 	// Centralized cleanup for all allocated resources.
@@ -153,8 +228,8 @@ Cleanup:
 
 int main()
 {
-	//char * str = "C:\\Users\\itai marts\\Desktop\\Cyber2\\hw2\\programUsingSandbox\\Debug\\programUsingSandbox.exe";
-	char * str = "calc";
+	char * str = "C:\\Users\\itai marts\\Desktop\\Cyber2\\hw2\\Sandbox\\programUsingSandbox\\Debug\\programUsingSandbox.exe";
+	//char * str = "calc";
 
 	//convert path file to PWSTR
 	int count = 0;
@@ -165,14 +240,14 @@ int main()
 		MyWS = SysAllocStringLen(0, count);
 		MultiByteToWideChar(CP_ACP, 0, str, strlen(str), MyWS, count);
 	}
-
+	
 	//create and run the low process
 	CreateLowProcess(MyWS);
-
-	/* need to create another desktop and run the low integrity process there
-	*  need to give the new process pipe in order to make conversation with the broker
-	*  implement the protocol as defined in assignment
-	*/ 
+	Sleep(50000);
+	
+	 
 
 	return 0;
 }
+
+
