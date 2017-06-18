@@ -33,7 +33,10 @@
     <ClInclude Include="Utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="pe_image.h">
+    <ClInclude Include="ProcessCreation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -53,7 +56,7 @@
     <ClCompile Include="Utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="pe_image.cpp">
+    <ClCompile Include="IPC.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,12 +1,4 @@
 ﻿  Broker.cpp
-c:\users\itai marts\desktop\cyber2\hw2\sandbox\broker\broker\broker\pe_image.h(248): warning C4302: 'reinterpret_cast': truncation from 'LPCSTR' to 'WORD'
-c:\users\itai marts\desktop\cyber2\hw2\sandbox\broker\broker\broker\broker.cpp(242): warning C4477: 'printf' : format string '%s' requires an argument of type 'char *', but variadic argument 1 has type 'long'
-c:\users\itai marts\desktop\cyber2\hw2\sandbox\broker\broker\broker\broker.cpp(369): warning C4244: '=': conversion from 'unsigned long' to 'WORD', possible loss of data
-c:\users\itai marts\desktop\cyber2\hw2\sandbox\broker\broker\broker\broker.cpp(381): warning C4244: '=': conversion from 'unsigned long' to 'WORD', possible loss of data
-c:\users\itai marts\desktop\cyber2\hw2\sandbox\broker\broker\broker\broker.cpp(422): warning C4477: 'printf' : format string '%s' requires an argument of type 'char *', but variadic argument 1 has type 'DWORD'
-c:\users\itai marts\desktop\cyber2\hw2\sandbox\broker\broker\broker\broker.cpp(439): warning C4477: 'printf' : format string '%s' requires an argument of type 'char *', but variadic argument 1 has type 'int'
-c:\users\itai marts\desktop\cyber2\hw2\sandbox\broker\broker\broker\broker.cpp(747): warning C4129: 'D': unrecognized character escape sequence
-c:\users\itai marts\desktop\cyber2\hw2\sandbox\broker\broker\broker\broker.cpp(309): warning C4715: 'SetIntegrityLevel': not all control paths return a value
-c:\users\itai marts\desktop\cyber2\hw2\sandbox\broker\broker\broker\broker.cpp(690): warning C4715: 'setNewWindowStationAndDesktop': not all control paths return a value
+c:\users\itai marts\desktop\cyber2\hw2\sandbox\broker\broker\broker\broker.cpp(53): warning C4129: 'D': unrecognized character escape sequence
   Broker.vcxproj -> C:\Users\itai marts\Desktop\Cyber2\hw2\Sandbox\Broker\Broker\Debug\Broker.exe
   Broker.vcxproj -> C:\Users\itai marts\Desktop\Cyber2\hw2\Sandbox\Broker\Broker\Debug\Broker.pdb (Full PDB)
