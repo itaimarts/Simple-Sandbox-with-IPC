@@ -1,6 +1,7 @@
 #pragma once
 
 BOOL CreateProcessWithExplicitTokenSuspended(
+	__in WCHAR * pathToFile,
 	__in PWSTR pszCommandLine,
 	__in HANDLE token,
 	__in LPWSTR fullDesktop_name,

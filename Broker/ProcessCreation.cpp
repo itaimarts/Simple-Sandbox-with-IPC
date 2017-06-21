@@ -63,7 +63,8 @@ HANDLE CreateRestrictedJobObject() {
 
 
 BOOL CreateProcessWithExplicitTokenSuspended(
-	__in PWSTR pszCommandLine,
+	__in WCHAR * pathToFile,
+	__in wchar_t * pszCommandLine,
 	__in HANDLE token,
 	__in LPWSTR fullDesktopName,
 	__out PROCESS_INFORMATION * pi)
@@ -72,8 +73,8 @@ BOOL CreateProcessWithExplicitTokenSuspended(
 	STARTUPINFO si = { sizeof(si) };
 	si.lpDesktop = fullDesktopName;
 
-	if (!CreateProcessAsUserW(token,
-		NULL,
+	if (!CreateProcessAsUser(token,
+		pathToFile,
 		pszCommandLine,
 		NULL,
 		NULL,
