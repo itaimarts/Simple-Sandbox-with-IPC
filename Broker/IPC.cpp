@@ -3,8 +3,16 @@
 #include "Utils.h"
 
 
-IPC::IPC()
+
+HWND textboxIPC;
+static TCHAR buffIPC[1024];//find reslt for this !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+IPC::IPC(HINSTANCE hInstance, PWSTR pCmdLine, int nCmdShow)
 {
+	this->hInstance = hInstance;
+	this->pCmdLine = pCmdLine;
+	this->nCmdShow = nCmdShow;
 	initIPC();
 }
 
@@ -42,25 +50,24 @@ bool IPC::writeToTarget(char* msg, size_t msgLen)
 }
 
 
+
 bool IPC::handleCreateWindowExMsg(struct createWindowExMsg * rawMsg)
 {
-
-	HWND hwnd = { 0 };
-
-	HWND hwnd_1 = CreateWindowEx(WS_EX_CLIENTEDGE, L"edit", L"Line one",
-		WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_BORDER | ES_LEFT,
-		CW_USEDEFAULT, CW_USEDEFAULT, 200, 24,	// x, y, w, h
-		hwnd, (HMENU)(123),
-		(HINSTANCE)GetWindowLong(hwnd, GWL_HINSTANCE), NULL);
-
-	//wchar_t * msg;
-	//MessageBoxW(NULL, msg, L"MsgFromTextBox", MB_OK);
-
+	//create the window which user asked for
+	createWindow(hInstance, rawMsg->text, nCmdShow);
+	
+	//create the response from user
 	struct createWindowExMsg response;
 	response.type = createWindowEx;
-	//response.text = 
-	//write the message to target
+	_snwprintf_s(response.text, 1023, L"%s", buffIPC);
 	
+	//write the response for user
+	//writeToTarget((char*)&response, sizeof(struct createWindowExMsg));
+	DWORD sended;
+	if (!WriteFile(brokerToTargetWrite, &response, sizeof(struct createWindowExMsg), &sended, NULL) || sended != sizeof(struct createWindowExMsg)) {
+		ErrorExit(L"writeToTarget");
+	}
+
 	return true;
 }
 
@@ -106,15 +113,91 @@ bool IPC::loop()
 	}
 }
 
-/*
-bool handlers_string(wchar_t* buffer_to_fill)
+
+LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	switch (uMsg)
+	{
+		case WM_DESTROY:
+		{
+			PostQuitMessage(0);
+			return 0;
+		}
+		case WM_PAINT:
+		{
+			PAINTSTRUCT ps;
+			HDC hdc = BeginPaint(hwnd, &ps);
 
-	size_t len_path = wcslen(buffer_to_fill);
+			FillRect(hdc, &ps.rcPaint, (HBRUSH)(COLOR_WINDOW + 1));
 
-	size_t new_size = wsprintf(buffer_to_fill, L"%ls --handlers %lu %lu %lu %lu", buffer_to_fill, brokerToTargetRead, brokerToTargetWrite, targetToBrokerRead, targetToBrokerWrite);
+			EndPaint(hwnd, &ps);
+			break;
+		}
 
-	return ((new_size - len_path) > 0);
+		case WM_COMMAND:
+		{
+			if (wParam == OK_BUTTON)
+			{
+				GetWindowText(textboxIPC, buffIPC, 1024);
+				PostQuitMessage(0);
+				return 1;
+			}
+			break;
+
+			return 0;
+		}
+
+	}
+	return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 
-*/
+
+int IPC::createWindow(HINSTANCE hInstance, PWSTR message, int nCmdShow) {
+	// Register the window class.
+	const LPCWSTR CLASS_NAME = L"WINDOW";
+
+	WNDCLASS wc = {};
+
+	wc.lpfnWndProc = WindowProc;
+	wc.hInstance = hInstance;
+	wc.lpszClassName = CLASS_NAME;
+
+	RegisterClass(&wc);
+
+	// Create the window.
+	HWND hwnd = CreateWindowEx(
+		0,                              // Optional window styles.
+		CLASS_NAME,                     // Window class
+		L"Sandboxed program asked you to answer",    // Window text
+		WS_OVERLAPPEDWINDOW,            // Window style
+
+										// Size and position
+		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+
+		NULL,       // Parent window    
+		NULL,       // Menu
+		hInstance,  // Instance handle
+		NULL        // Additional application data
+	);
+
+	if (hwnd == NULL)
+	{
+		return 0;
+	}
+	textboxIPC = CreateWindow(L"Edit", message, WS_BORDER | WS_CHILD | WS_VISIBLE | ES_READONLY, 56, 10, 300, 18, hwnd, 0, 0, 0);
+	textboxIPC = CreateWindow(L"EDIT", 0, WS_BORDER | WS_CHILD | WS_VISIBLE, 56, 40, 300, 50, hwnd, 0, 0, 0);
+	CreateWindow(L"BUTTON", L"Send", WS_CHILD | WS_VISIBLE, 70, 90, 80, 25, hwnd, (HMENU)OK_BUTTON, 0, 0);
+
+	ShowWindow(hwnd, nCmdShow);
+
+	// Run the message loop.
+
+	MSG msg = {};
+	while (GetMessage(&msg, NULL, 0, 0))
+	{
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+
+	return 0;
+}

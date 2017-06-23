@@ -14,7 +14,7 @@ LPCWSTR filePath = L"C:\\itai.txt";
 BOOL runProcessAsUntrusted(WCHAR * pathToFile, WCHAR * cmdLine) {
 	
 	//create tokens primary and initialization tokens
-	HANDLE primaryToken = createRestrictedToken(GetCurrentProcess(), TRUE);
+	HANDLE primaryToken = createRestrictedToken(GetCurrentProcess(), FALSE);
 	HANDLE initializationToken = createRestrictedToken(GetCurrentProcess(), FALSE);
 	HANDLE impersonation_token;
 	PROCESS_INFORMATION pi = { 0 };
@@ -49,10 +49,10 @@ BOOL runProcessAsUntrusted(WCHAR * pathToFile, WCHAR * cmdLine) {
 }
 
 
-int main()
+//int main()
+int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow)
 {
-	//char * str = "C:\\Users\\itai marts\\Desktop\\Cyber2\\hw2\\Sandbox\\programUsingSandbox\\Debug\\programUsingSandbox.exe";
-	
+		
 	SECURITY_ATTRIBUTES sa;
 	ZeroMemory(&sa, sizeof(SECURITY_ATTRIBUTES));
 	sa.bInheritHandle = TRUE;
@@ -60,10 +60,10 @@ int main()
 	WCHAR CmdLineBuf[1024];
 	WCHAR AppPath[1024];
 
-	IPC * ipc = new IPC();
+	IPC * ipc = new IPC(hInstance, pCmdLine, nCmdShow);
 	HANDLE fHandle = CreateFile(filePath, GENERIC_ALL, FILE_SHARE_READ | FILE_SHARE_WRITE, &sa, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	//TODO: get the path file to run from cmd
-	if (_snwprintf_s(CmdLineBuf, 1023, L"\"%s\" %p %p %p 0 %s 0", sandboxedTargetPath, ipc->brokerToTargetWrite, ipc->targetToBrokerRead, fHandle, filePath) < 0) {
+	if (_snwprintf_s(CmdLineBuf, 1023, L"\"%s\" %p %p %p 0 %s 0", sandboxedTargetPath, ipc->targetToBrokerWrite, ipc->brokerToTargetRead, fHandle, filePath) < 0) {
 		ErrorExit(L"main - initialization errors");
 	}
 

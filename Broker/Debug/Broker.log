@@ -1,5 +1,4 @@
-﻿  Broker.cpp
-c:\users\itai marts\desktop\cyber2\hw2\sandbox\broker\broker\broker\broker.cpp(66): warning C4129: 'D': unrecognized character escape sequence
-c:\users\itai marts\desktop\cyber2\hw2\sandbox\broker\broker\broker\broker.cpp(71): warning C4129: 'D': unrecognized character escape sequence
+﻿  IPC.cpp
+c:\users\itai marts\desktop\cyber2\hw2\sandbox\broker\broker\broker\ipc.cpp(105): warning C4800: 'BOOL': forcing value to bool 'true' or 'false' (performance warning)
   Broker.vcxproj -> C:\Users\itai marts\Desktop\Cyber2\hw2\Sandbox\Broker\Broker\Debug\Broker.exe
   Broker.vcxproj -> C:\Users\itai marts\Desktop\Cyber2\hw2\Sandbox\Broker\Broker\Debug\Broker.pdb (Full PDB)

@@ -2,13 +2,15 @@
 
 
 #define BUFFER_SIZE		4096 // 4K bytes
+#define OK_BUTTON (100)
+
 
 
 enum TypeMsg { createWindowEx, createFile };
 
 struct createWindowExMsg {
 	TypeMsg type;
-	char	text[BUFFER_SIZE];
+	TCHAR	text[BUFFER_SIZE];
 };
 
 struct createFileMsg {
@@ -21,7 +23,11 @@ struct createFileMsg {
 class IPC {
 
 	private:
-		
+		HINSTANCE hInstance;
+		PWSTR pCmdLine;
+		int nCmdShow;
+
+
 	public:
 		//fields
 		HANDLE brokerToTargetRead;
@@ -29,12 +35,16 @@ class IPC {
 		HANDLE targetToBrokerRead;
 		HANDLE targetToBrokerWrite;
 
+	
+
 		//methods
-		IPC();
+		IPC(HINSTANCE hInstance, PWSTR pCmdLine, int nCmdShow);
 		bool handleMsgFromTarget(void* rawMsg);
 		bool writeToTarget(char* msg, size_t msgLen);
 		bool handleCreateWindowExMsg(struct createWindowExMsg * rawMsg);
 		bool initIPC();
 		bool loop();
+		int createWindow(HINSTANCE hInstance, PWSTR message, int nCmdShow);
+		//LRESULT CALLBACK IPC::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 };
 

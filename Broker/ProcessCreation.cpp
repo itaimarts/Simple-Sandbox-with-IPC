@@ -64,7 +64,7 @@ HANDLE CreateRestrictedJobObject() {
 
 BOOL CreateProcessWithExplicitTokenSuspended(
 	__in WCHAR * pathToFile,
-	__in wchar_t * pszCommandLine,
+	__in PWSTR pszCommandLine,
 	__in HANDLE token,
 	__in LPWSTR fullDesktopName,
 	__out PROCESS_INFORMATION * pi)
@@ -189,7 +189,7 @@ BOOL initializeProcessWithImpersonationToken(PROCESS_INFORMATION pi, HANDLE impe
 	//resume thread to finish initialization
 	if (ResumeThread(pi.hThread) == -1)
 		ErrorExit(L"Resume thread");
-	//DWORD message = GetLastError();
+	DWORD message = GetLastError();
 
 	// wait until the thread stuck at entry point
 	CONTEXT context;
